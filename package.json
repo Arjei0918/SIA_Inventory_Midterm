@@ -1,0 +1,1 @@
+{"scripts":{"lint:openapi":"npx.cmd @redocly/cli lint server/public/openapi.yaml --skip-rule security-defined --skip-rule info-license --skip-rule no-server-example.com --skip-rule tag-description --skip-rule operation-operationId --skip-rule operation-4xx-response"}}
