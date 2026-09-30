@@ -1,0 +1,15 @@
+{
+  "name": "sia/inventory-midterm-api",
+  "description": "College Management System Inventory module midterm API with mock JSON data.",
+  "type": "project",
+  "require": {
+    "php": "^8.1",
+    "slim/slim": "^4.15",
+    "slim/psr7": "^1.7"
+  },
+  "autoload": {
+    "psr-4": {
+      "Inventory\\": "server/"
+    }
+  }
+}

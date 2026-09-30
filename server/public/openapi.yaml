@@ -1,0 +1,416 @@
+openapi: 3.0.3
+info:
+  title: College Management System - Inventory API
+  version: 1.0.0
+  description: |
+    Midterm REST API contract for the Inventory module of the College Management System.
+    The API uses mock JSON data and does not require a database.
+  contact:
+    name: Inventory Group
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: Health
+  - name: Products
+  - name: Stock
+  - name: Integration
+
+paths:
+  /api/v1/health:
+    get:
+      tags: [Health]
+      summary: API health check
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /api/v1/products:
+    get:
+      tags: [Products]
+      summary: List products
+      responses:
+        '200':
+          description: Product list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+    post:
+      tags: [Products]
+      summary: Create a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+            example:
+              product_name: Whiteboard Marker
+              category: Office Supplies
+              price: 35.00
+              stock: 40
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/v1/products/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ProductId'
+    get:
+      tags: [Products]
+      summary: Get a product
+      responses:
+        '200':
+          description: Product found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Products]
+      summary: Update a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+            example:
+              product_name: Pencil
+              category: School Supplies
+              price: 12.00
+              stock: 300
+      responses:
+        '200':
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Products]
+      summary: Delete a product
+      responses:
+        '200':
+          description: Product deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+                    example: Product deleted successfully.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/stock/movements:
+    get:
+      tags: [Stock]
+      summary: List stock movements
+      responses:
+        '200':
+          description: Stock movement list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StockMovement'
+    post:
+      tags: [Stock]
+      summary: Record stock in or stock out
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockMovementInput'
+            examples:
+              stockIn:
+                value:
+                  product_id: 5
+                  movement_type: IN
+                  quantity: 20
+                  remarks: New delivery
+              stockOut:
+                value:
+                  product_id: 5
+                  movement_type: OUT
+                  quantity: 5
+                  remarks: Issued to Student Affairs
+      responses:
+        '201':
+          description: Movement recorded and product stock updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      movement:
+                        $ref: '#/components/schemas/StockMovement'
+                      product:
+                        $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/integration/inventory:
+    get:
+      tags: [Integration]
+      summary: Get inventory data for other modules
+      description: |
+        Read-only integration view. Other modules should use the owning Inventory
+        module as the source of truth for product availability and stock quantity.
+      responses:
+        '200':
+          description: Inventory integration payload
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [source, data]
+                properties:
+                  source:
+                    type: string
+                    example: Inventory
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/IntegrationProduct'
+
+components:
+  parameters:
+    ProductId:
+      name: id
+      in: path
+      required: true
+      description: Numeric product ID
+      schema:
+        type: integer
+        minimum: 1
+      example: 5
+
+  responses:
+    BadRequest:
+      description: Bad input. Returned as RFC 7807-style Problem Details JSON.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: about:blank
+            title: Validation error
+            status: 400
+            detail: The quantity field is required.
+            instance: /api/v1/stock/movements
+    NotFound:
+      description: Requested resource does not exist.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: about:blank
+            title: Product not found
+            status: 404
+            detail: No product exists with the requested ID.
+            instance: /api/v1/products/999
+
+  schemas:
+    Product:
+      type: object
+      required: [id, product_name, category, price, stock, created_at]
+      properties:
+        id:
+          type: integer
+          example: 5
+        product_name:
+          type: string
+          example: Pencil
+        category:
+          type: string
+          example: School Supplies
+        price:
+          type: number
+          format: double
+          minimum: 0
+          example: 10.00
+        stock:
+          type: integer
+          minimum: 0
+          example: 321
+        created_at:
+          type: string
+          format: date-time
+          example: '2026-09-01T10:00:00+08:00'
+
+    ProductInput:
+      type: object
+      required: [product_name, category, price, stock]
+      properties:
+        product_name:
+          type: string
+          minLength: 1
+          example: Pencil
+        category:
+          type: string
+          minLength: 1
+          example: School Supplies
+        price:
+          type: number
+          format: double
+          minimum: 0
+          example: 10.00
+        stock:
+          type: integer
+          minimum: 0
+          example: 321
+
+    StockMovement:
+      type: object
+      required: [id, product_id, product_name, movement_type, quantity, remarks, created_at]
+      properties:
+        id:
+          type: integer
+          example: 5
+        product_id:
+          type: integer
+          example: 5
+        product_name:
+          type: string
+          example: Pencil
+        movement_type:
+          type: string
+          enum: [IN, OUT]
+          example: IN
+        quantity:
+          type: integer
+          minimum: 1
+          example: 20
+        remarks:
+          type: string
+          example: New delivery
+        created_at:
+          type: string
+          format: date-time
+          example: '2026-09-20T09:00:00+08:00'
+
+    StockMovementInput:
+      type: object
+      required: [product_id, movement_type, quantity]
+      properties:
+        product_id:
+          type: integer
+          minimum: 1
+          example: 5
+        movement_type:
+          type: string
+          enum: [IN, OUT]
+          example: IN
+        quantity:
+          type: integer
+          minimum: 1
+          example: 20
+        remarks:
+          type: string
+          example: New delivery
+
+    IntegrationProduct:
+      type: object
+      required: [productId, productName, category, unitPrice, stockQuantity, availability, lowStock]
+      properties:
+        productId:
+          type: string
+          example: INV-00005
+        productName:
+          type: string
+          example: Pencil
+        category:
+          type: string
+          example: School Supplies
+        unitPrice:
+          type: number
+          format: double
+          example: 10.00
+        stockQuantity:
+          type: integer
+          example: 321
+        availability:
+          type: string
+          enum: [Available, Out of Stock]
+          example: Available
+        lowStock:
+          type: boolean
+          example: false
+
+    ProblemDetails:
+      type: object
+      required: [type, title, status, detail, instance]
+      properties:
+        type:
+          type: string
+          example: about:blank
+        title:
+          type: string
+          example: Validation error
+        status:
+          type: integer
+          example: 400
+        detail:
+          type: string
+          example: The quantity field is required.
+        instance:
+          type: string
+          example: /api/v1/stock/movements

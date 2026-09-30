@@ -1,0 +1,268 @@
+openapi: 3.0.3
+
+info:
+  title: SIA Inventory Management API
+  description: REST API for the SIA Inventory Management System using Slim Framework and JSON data.
+  version: 1.0.0
+  contact:
+    name: Arjei0918
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: Health
+    description: API health check
+  - name: Products
+    description: Product management
+  - name: Stock
+    description: Stock movement management
+  - name: Integration
+    description: Inventory integration for other SIA systems
+
+paths:
+
+  /api/v1/health:
+    get:
+      tags:
+        - Health
+      summary: Check API health
+      responses:
+        '200':
+          description: API is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /api/v1/products:
+    get:
+      tags:
+        - Products
+      summary: Get all products
+      responses:
+        '200':
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+
+  /api/v1/stock/movements:
+    get:
+      tags:
+        - Stock
+      summary: Get stock movement history
+      responses:
+        '200':
+          description: Stock movement list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StockMovement'
+
+    post:
+      tags:
+        - Stock
+      summary: Record a stock movement
+      description: Adds or removes product stock. Movement type must be IN or OUT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockMovementCreate'
+            example:
+              product_id: 5
+              movement_type: IN
+              quantity: 20
+              remarks: New delivery
+      responses:
+        '201':
+          description: Stock movement created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/StockMovement'
+        '400':
+          description: Validation error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Product not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+  /api/v1/integration/inventory:
+    get:
+      tags:
+        - Integration
+      summary: Get inventory integration data
+      description: Provides inventory information for other SIA systems.
+      responses:
+        '200':
+          description: Inventory integration data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationResponse'
+
+components:
+
+  schemas:
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 5
+        product_name:
+          type: string
+          example: Pencil
+        category:
+          type: string
+          example: School Supplies
+        price:
+          type: number
+          format: float
+          example: 10
+        stock:
+          type: integer
+          example: 321
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-09-01T10:00:00+08:00"
+
+    StockMovement:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 5
+        product_id:
+          type: integer
+          example: 5
+        product_name:
+          type: string
+          example: Pencil
+        movement_type:
+          type: string
+          enum:
+            - IN
+            - OUT
+          example: IN
+        quantity:
+          type: integer
+          example: 300
+        remarks:
+          type: string
+          example: New delivery
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-09-20T09:00:00+08:00"
+
+    StockMovementCreate:
+      type: object
+      required:
+        - product_id
+        - movement_type
+        - quantity
+      properties:
+        product_id:
+          type: integer
+          minimum: 1
+          example: 5
+        movement_type:
+          type: string
+          enum:
+            - IN
+            - OUT
+          example: IN
+        quantity:
+          type: integer
+          minimum: 1
+          example: 20
+        remarks:
+          type: string
+          example: New delivery
+
+    IntegrationItem:
+      type: object
+      properties:
+        productId:
+          type: string
+          example: INV-00005
+        productName:
+          type: string
+          example: Pencil
+        category:
+          type: string
+          example: School Supplies
+        unitPrice:
+          type: number
+          format: float
+          example: 10
+        stockQuantity:
+          type: integer
+          example: 321
+        availability:
+          type: string
+          example: Available
+        lowStock:
+          type: boolean
+          example: false
+
+    IntegrationResponse:
+      type: object
+      properties:
+        source:
+          type: string
+          example: Inventory
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/IntegrationItem'
+
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          example: about:blank
+        title:
+          type: string
+          example: Product not found
+        status:
+          type: integer
+          example: 404
+        detail:
+          type: string
+          example: No product exists with the requested ID.
+        instance:
+          type: string
+          example: /api/v1/stock/movements

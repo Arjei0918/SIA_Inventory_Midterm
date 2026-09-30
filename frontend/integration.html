@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Enterprise Integration</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+        }
+
+        .header {
+            background: #1f2937;
+            color: white;
+            padding: 25px 40px;
+        }
+
+        .header h1 {
+            margin: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 30px auto;
+        }
+
+        .box {
+            background: white;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .box h2 {
+            margin-top: 0;
+        }
+
+        .status {
+            background: #dcfce7;
+            color: #166534;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .system {
+            padding: 15px;
+            margin: 10px 0;
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+
+        .send {
+            color: #16a34a;
+            font-weight: bold;
+        }
+
+        .receive {
+            color: #2563eb;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #f1f1f1;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="header">
+
+        <h1>Enterprise Integration</h1>
+
+        <p>Inventory Management System</p>
+
+    </div>
+
+
+    <div class="container">
+
+
+        <!-- API STATUS -->
+
+        <div class="box">
+
+            <h2>Inventory API</h2>
+
+            <div class="status" id="status">
+                Connecting...
+            </div>
+
+        </div>
+
+
+        <!-- SYSTEM CONNECTIONS -->
+
+        <div class="box">
+
+            <h2>Connected Systems</h2>
+
+
+            <div class="system">
+
+                <strong>Registration System</strong>
+
+                <br>
+
+                <span class="receive">
+                    Receives:
+                </span>
+
+                Supply availability information
+
+            </div>
+
+
+            <div class="system">
+
+                <strong>Finance System</strong>
+
+                <br>
+
+                <span class="receive">
+                    Receives:
+                </span>
+
+                Product prices and inventory information
+
+            </div>
+
+
+            <div class="system">
+
+                <strong>Library System</strong>
+
+                <br>
+
+                <span class="receive">
+                    Receives:
+                </span>
+
+                Equipment and supply availability
+
+            </div>
+
+
+            <div class="system">
+
+                <strong>Landing Page</strong>
+
+                <br>
+
+                <span class="receive">
+                    Receives:
+                </span>
+
+                Product information and stock levels
+
+            </div>
+
+        </div>
+
+
+        <!-- INVENTORY DATA -->
+
+        <div class="box">
+
+            <h2>Inventory Data Available for Integration</h2>
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>ID</th>
+
+                        <th>Product</th>
+
+                        <th>Category</th>
+
+                        <th>Price</th>
+
+                        <th>Stock</th>
+
+                        <th>Status</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="inventoryBody">
+
+                    <tr>
+
+                        <td colspan="6">
+                            Loading...
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        const API_URL =
+            "../backend/integration.php?action=products";
+
+
+        async function loadInventory() {
+
+            try {
+
+                const response =
+                    await fetch(API_URL);
+
+
+                const result =
+                    await response.json();
+
+
+                if (!result.success) {
+
+                    document.getElementById("status")
+                        .textContent =
+                        "API Error";
+
+                    return;
+
+                }
+
+
+                document.getElementById("status")
+                    .textContent =
+                    "✓ Inventory API Connected";
+
+
+                const body =
+                    document.getElementById(
+                        "inventoryBody"
+                    );
+
+
+                body.innerHTML = "";
+
+
+                result.data.forEach(product => {
+
+                    const row =
+                        document.createElement("tr");
+
+
+                    row.innerHTML = `
+
+                        <td>${product.id}</td>
+
+                        <td>${product.product_name}</td>
+
+                        <td>${product.category}</td>
+
+                        <td>
+                            ₱${product.price.toFixed(2)}
+                        </td>
+
+                        <td>
+                            ${product.stock}
+                        </td>
+
+                        <td>
+                            ${
+                                product.available
+                                ? "Available"
+                                : "Out of Stock"
+                            }
+                        </td>
+
+                    `;
+
+
+                    body.appendChild(row);
+
+                });
+
+            }
+
+            catch (error) {
+
+                console.error(error);
+
+
+                document.getElementById("status")
+                    .textContent =
+                    "✗ Unable to connect to Inventory API";
+
+            }
+
+        }
+
+
+        loadInventory();
+
+    </script>
+
+</body>
+
+</html>
