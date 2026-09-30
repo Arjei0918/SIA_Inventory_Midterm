@@ -534,10 +534,10 @@
     <script>
 
         const API_URL =
-            "../backend/products.php";
+            "http://localhost:8080/api/v1/products";
 
         const STOCK_API_URL =
-            "../backend/stock.php";
+            "http://localhost:8080/api/v1/stock/movements";
 
         let products = [];
 
@@ -553,8 +553,9 @@
                 const response =
                     await fetch(API_URL);
 
-                products =
-                    await response.json();
+                const result = await response.json();
+
+                products = result.data || [];
 
                 const productBody =
                     document.getElementById("productBody");
@@ -597,7 +598,7 @@
                         <td>${product.category}</td>
 
                         <td>
-                            ₱${parseFloat(product.price).toFixed(2)}
+                            &#8369;${parseFloat(product.price).toFixed(2)}
                         </td>
 
                         <td class="${
@@ -758,9 +759,7 @@
                     try {
 
                         const response =
-                            await fetch(
-                                API_URL,
-                                {
+                            await fetch(`${API_URL}/${id}`, {
                                     method: "POST",
 
                                     headers: {
@@ -777,7 +776,7 @@
                             await response.json();
 
 
-                        if (result.success) {
+                        if (response.ok) {
 
                             alert(
                                 "Product added successfully!"
@@ -792,7 +791,7 @@
                         else {
 
                             alert(
-                                result.message ||
+                                result.detail || result.title ||
                                 "Failed to add product."
                             );
 
@@ -850,9 +849,7 @@
             try {
 
                 const response =
-                    await fetch(
-                        API_URL,
-                        {
+                    await fetch(`${API_URL}/${id}`, {
 
                             method: "PUT",
 
@@ -861,11 +858,7 @@
                                     "application/json"
                             },
 
-                            body: JSON.stringify({
-
-                                id: id,
-
-                                product_name:
+                            body: JSON.stringify({ product_name:
                                     productName,
 
                                 category:
@@ -886,12 +879,7 @@
                 const result =
                     await response.json();
 
-                alert(result.message);
-
-
-                if (result.success) {
-                    loadProducts();
-                }
+                if (response.ok) { alert("Product updated successfully!"); loadProducts(); } else { alert(result.detail || result.title || "Failed to update product."); }
 
             }
 
@@ -925,9 +913,7 @@
             try {
 
                 const response =
-                    await fetch(
-                        API_URL,
-                        {
+                    await fetch(`${API_URL}/${id}`, {
 
                             method: "DELETE",
 
@@ -947,12 +933,7 @@
                 const result =
                     await response.json();
 
-                alert(result.message);
-
-
-                if (result.success) {
-                    loadProducts();
-                }
+                if (response.ok) { alert("Product deleted successfully!"); loadProducts(); } else { alert(result.detail || result.title || "Failed to delete product."); }
 
             }
 
@@ -1179,28 +1160,7 @@
                         await response.json();
 
 
-                    if (result.success) {
-
-                        alert(
-                            result.message +
-                            "\nNew Stock: " +
-                            result.new_stock
-                        );
-
-                        closeStockModal();
-
-                        loadProducts();
-
-                    }
-
-                    else {
-
-                        alert(
-                            result.message ||
-                            "Failed to update stock."
-                        );
-
-                    }
+                    if (response.ok) { alert("Stock movement recorded successfully!\nNew Stock: " + result.data.stock); closeStockModal(); loadProducts(); } else { alert(result.detail || result.title || "Failed to update stock."); }
 
                 }
 
