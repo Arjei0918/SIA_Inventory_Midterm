@@ -292,8 +292,35 @@ Do not push directly to `main`. Open a pull request and have at least one teamma
 
 Never commit `.env`, passwords, API keys, or other secrets.
 
-## Project status
+## Project Status
 
-**Midterm Inventory package:** API contract, mock-data API structure, documentation, and prototype specification are prepared in this repository.
+### Midterm Inventory Package
 
-Before submission, the group must verify the class-approved design-system URL, assigned Inventory port, and actual agreements with the other groups against the final class agreements. Those values are intentionally not fabricated in this repository.
+The Inventory module midterm implementation and prototype have been prepared for submission.
+
+- API contract and OpenAPI documentation
+- Slim Framework 4 backend API
+- `/api/v1` endpoints
+- Product CRUD operations
+- Stock In/Out and movement history
+- Inventory integration endpoint
+- Mock JSON data store
+- Routes -> Services -> Data architecture
+- Problem Details error responses
+- Swagger UI documentation
+- Frontend connected to the Slim API
+- Figma high-fidelity Inventory Management prototype
+- Responsive prototype layout
+- Architecture, data model, integration, design-system, and ADR documentation
+
+### Final Submission Checklist
+
+Before submitting the project, the group will verify:
+
+- [ ] OpenAPI contract passes the required Redocly lint check
+- [ ] Figma is shared as **Anyone with the link can view**
+- [ ] Figma prototype opens on the first screen
+- [ ] Completed midterm handout is attached
+- [ ] Class-approved design-system information is documented
+- [ ] Assigned Inventory API port is documented
+- [ ] Cross-module integration agreements and shared IDs are documented
